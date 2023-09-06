@@ -1,7 +1,7 @@
 import yaml
-from utils import create_pool
-from utils.sql_config import create_db_connection
+from utils import get_pool, load_yaml
+from func import Table
 
 if __name__ == "__main__":
-    pool = create_pool(create_db_connection)
-    pass
+    table = Table("mysql", "default_roles")
+    print(table.tables, table.show_databases)

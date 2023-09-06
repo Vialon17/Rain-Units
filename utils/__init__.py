@@ -1,4 +1,4 @@
-from sql_config import create_pool, load_yaml
+from .sql_config import get_pool, load_yaml
 import time
 
 def timer(func):

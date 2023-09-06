@@ -2,10 +2,9 @@ from dbutils.persistent_db import PersistentDB
 import sys
 sys.path.append("../util")
 import os
-from utils import pool, time_format
+from utils import get_pool
 import traceback
 from functools import wraps
-from collections import OrderedDict
 import pandas as pd
 
 def exec(connection: PersistentDB.connection,
@@ -85,15 +84,6 @@ def update_table(conn, table, update_string, condition) -> None:
 
 @formatter
 def create_table(conn, table, columns):
-    # add sql `UNIQUE`` constraint with multiple columns for different tables:
-    if '日期时间' in columns and 'file_name' in columns:
-        columns += ', primary key (日期时间, file_name)'
-    elif '记录日期' in columns and 'file_name' in columns:
-        columns += ', primary key (记录日期, file_name)'
-    elif '姓名' in columns and '住院号' in columns:
-        columns += ', primary key (姓名, 住院号)'
-    elif 'file_name' in columns and '手术开始时间' in columns:
-        columns += ', primary key (手术开始时间, file_name)'
     return exec(conn, "create table if not exists %s (%s);"  % (table, columns))
 
 @formatter
@@ -175,7 +165,7 @@ class Table:
             database: str = '',
             table_name: str = '',
             columns: str = '',
-            connection: PersistentDB.connection = pool.connection(),
+            connection: PersistentDB.connection = get_pool().connection(),
             ):
         self.conn = connection
         self.database = database

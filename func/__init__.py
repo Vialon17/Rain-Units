@@ -1,0 +1,1 @@
+from .curd import Table

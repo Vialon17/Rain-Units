@@ -13,16 +13,10 @@ def load_yaml(
         re_dict = yaml.load(f, Loader = yaml_loader)
     return re_dict
 
-def create_db_connection(config: dict | None):
-    if config is None:
-        config = load_yaml("config.yaml")["mysql"]
-    return pymysql.connect(
-        **config
-    )
-
-def create_pool(connection, maxconn = 20, **other_para) -> PooledDB:
+def get_pool(connection = pymysql, maxconn = 20, **config_para) -> PooledDB:
+    config_para = load_yaml("config.yaml").get("mysql") if len(config_para) == 0 else config_para
     return PooledDB(
         creator = connection,
-        maxconnections = maxconn
-        **other_para
+        maxconnections = maxconn,
+        **config_para
     )
