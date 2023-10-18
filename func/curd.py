@@ -2,7 +2,6 @@ from dbutils.persistent_db import PersistentDB
 import sys
 sys.path.append("../util")
 import os
-from utils import get_pool
 import traceback
 from functools import wraps
 import pandas as pd
@@ -161,12 +160,10 @@ class Table:
     # Hinting: database has been designated (sql_config file);
 
     def __init__(
-            self,
+            self, connection: PersistentDB.connection,
             database: str = '',
             table_name: str = '',
-            columns: str = '',
-            connection: PersistentDB.connection = get_pool().connection(),
-            ):
+            columns: str = ''):
         self.conn = connection
         self.database = database
         self.table_name = table_name
@@ -333,13 +330,6 @@ class Table:
             select data_type from information_schema.columns \
                 where table_name = '%s' and column_name = '%s'" % (self.table_name, col)
         col_type = exec(self.conn, sql)[0][0]
-        if val is not None:
-            if col_type in ('datetime', 'time'):
-                val = time_format(val)
-            elif col_type == 'int':
-                val = val
-            else:
-                val = "'"+val+"'"
         return col_type, val
     
     def update(
@@ -397,18 +387,12 @@ class Table:
         elif created is True and table != '':
             self.table_name = table
             if cols is None:
-                create_table(
-                    self.conn, 
-                    self.table_name, 
-                    "id int primary key, first_name varchar(50), last_name varchar(50), salary float"
-                    )
+                create_table(self.conn, self.table_name, 
+                    "id int primary key, first_name varchar(50), last_name varchar(50), salary float")
             else:
                 if isinstance(cols, dict):
                     cols = ", ".join([f"{key} {value}" for key, value in cols.items()])
-                create_table(
-                    self.conn, 
-                    self.table_name, 
-                    cols)
+                create_table(self.conn, self.table_name, cols)
             self.commit
             return f"Have create table {table} with {cols}."
         raise ValueError(
@@ -417,7 +401,7 @@ class Table:
 
 class Info:
 
-    ''' Simulate pamdas.DataFrame and recombinate data'''
+    ''' Simulate pandas.DataFrame and recombinate data'''
 
     def __init__(self, data: dict[str, pd.DataFrame]):
         for table_name, df in data.items():
